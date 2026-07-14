@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Mail, Phone, MapPin, Briefcase, GraduationCap, GitBranch, Globe, FileText, Send, CheckCircle, AlertCircle } from 'lucide-react';
-import api from '../utils/api';
+import { saveContactMessage, initDatabase } from '../lib/db';
 import Layout from '../components/Layout';
 import Typewriter from '../components/Typewriter';
 import SkillSection from '../components/SkillSection';
@@ -61,12 +61,95 @@ interface Education {
 }
 
 export const Portfolio: React.FC = () => {
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [skills, setSkills] = useState<Skill[]>([]);
-  const [experiences, setExperiences] = useState<Experience[]>([]);
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [educations, setEducations] = useState<Education[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Static portfolio data
+  const [profile] = useState<Profile>({
+    name: 'Vijay Bhesaniya',
+    taglines: ['Shopify Developer', 'Python Developer', 'Full Stack Developer'],
+    intro_text: 'I build high-converting Shopify stores and robust Python applications.',
+    about_text: 'Experienced developer specializing in Shopify Liquid, Python systems, and full-stack development. I help businesses scale with custom solutions.',
+    location: 'India',
+    experience_years: '5+ years',
+    projects_delivered: 50,
+    education_summary: 'B.Tech Computer Science',
+    email: 'vijay@example.com',
+    phone: '+91 9876543210',
+    linkedin_url: 'https://linkedin.com/in/vijay',
+    github_url: 'https://github.com/vijay'
+  });
+
+  const [skills] = useState<Skill[]>([
+    { id: 1, category: 'Shopify', name: 'Liquid' },
+    { id: 2, category: 'Shopify', name: 'Theme Development' },
+    { id: 3, category: 'Python', name: 'FastAPI' },
+    { id: 4, category: 'Python', name: 'Django' },
+    { id: 5, category: 'Frontend', name: 'React' },
+    { id: 6, category: 'Frontend', name: 'TypeScript' },
+    { id: 7, category: 'Database', name: 'PostgreSQL' },
+    { id: 8, category: 'Database', name: 'SQLite' },
+  ]);
+
+  const [experiences] = useState<Experience[]>([
+    {
+      id: 1,
+      title: 'Senior Shopify Developer',
+      company: 'Tech Solutions Inc',
+      location: 'Remote',
+      start_date: '2022-01',
+      end_date: 'Present',
+      bullets: ['Developed 20+ custom Shopify themes', 'Improved store performance by 40%', 'Led a team of 3 developers']
+    },
+    {
+      id: 2,
+      title: 'Python Developer',
+      company: 'Data Systems Ltd',
+      location: 'Mumbai',
+      start_date: '2020-06',
+      end_date: '2021-12',
+      bullets: ['Built REST APIs with FastAPI', 'Developed data processing pipelines', 'Integrated third-party services']
+    }
+  ]);
+
+  const [projects] = useState<Project[]>([
+    {
+      id: 1,
+      name: 'E-commerce Platform',
+      url: 'https://example.com',
+      description: 'Custom Shopify store with advanced features',
+      tech_stack: ['Shopify', 'Liquid', 'JavaScript'],
+      is_featured: true,
+      category: 'shopify'
+    },
+    {
+      id: 2,
+      name: 'Inventory System',
+      url: 'https://example.com',
+      description: 'Python-based inventory management system',
+      tech_stack: ['Python', 'FastAPI', 'PostgreSQL'],
+      is_featured: false,
+      category: 'python'
+    },
+    {
+      id: 3,
+      name: 'Corporate Website',
+      url: 'https://example.com',
+      description: 'WordPress site with custom theme',
+      tech_stack: ['WordPress', 'PHP', 'JavaScript'],
+      is_featured: false,
+      category: 'wordpress'
+    }
+  ]);
+
+  const [educations] = useState<Education[]>([
+    {
+      id: 1,
+      institution: 'University of Mumbai',
+      degree: 'B.Tech Computer Science',
+      location: 'Mumbai',
+      date_range: '2016-2020'
+    }
+  ]);
+
+  const [loading, setLoading] = useState(false);
 
   // Filter category
   const [filterCategory, setFilterCategory] = useState<string>('all');
@@ -80,27 +163,7 @@ export const Portfolio: React.FC = () => {
   const [contactError, setContactError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [profileRes, skillsRes, expRes, projRes, eduRes] = await Promise.all([
-          api.get('/profile'),
-          api.get('/skills'),
-          api.get('/experience'),
-          api.get('/projects'),
-          api.get('/education')
-        ]);
-        setProfile(profileRes);
-        setSkills(skillsRes);
-        setExperiences(expRes);
-        setProjects(projRes);
-        setEducations(eduRes);
-      } catch (err) {
-        console.error('Error fetching portfolio data', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
+    initDatabase();
   }, []);
 
   const handleContactSubmit = async (e: React.FormEvent) => {
@@ -114,7 +177,7 @@ export const Portfolio: React.FC = () => {
     setContactError(null);
 
     try {
-      await api.post('/contact', {
+      await saveContactMessage({
         name: contactName,
         email: contactEmail,
         message: contactMessage,

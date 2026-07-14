@@ -4,9 +4,6 @@ on:
   push:
     branches:
       - main
-    paths:
-      - 'frontend/**'
-      - '.github/workflows/deploy-frontend.yml'
   workflow_dispatch:
 
 jobs:
@@ -31,7 +28,7 @@ jobs:
         working-directory: ./frontend
         run: npm run build
         env:
-          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          VITE_DATABASE_URL: ${{ secrets.VITE_DATABASE_URL }}
 
       - name: Deploy to Vercel
         uses: amondnet/vercel-action@v25
