@@ -1,0 +1,76 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+  --font-heading: 'Space Grotesk', sans-serif;
+  --font-sans: 'Inter', sans-serif;
+  --color-primary: #1F3864;
+  --color-accent: #0E7C7B;
+  --color-dark-bg: #0B1220;
+  --color-light-bg: #F7F9FC;
+}
+
+html, body {
+  font-family: var(--font-sans);
+  scroll-behavior: smooth;
+  margin: 0;
+  padding: 0;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+}
+
+/* Custom background ambient glow blobs */
+.glow-blob {
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(31, 56, 100, 0.15) 0%, rgba(14, 124, 123, 0.05) 50%, rgba(11, 18, 32, 0) 100%);
+  filter: blur(80px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Hide scrollbar but keep functionality */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Animated Gradient Border for the "Hire Me" button */
+@keyframes border-glow {
+  0%, 100% {
+    border-color: rgba(14, 124, 123, 0.4);
+    box-shadow: 0 0 10px rgba(14, 124, 123, 0.2);
+  }
+  50% {
+    border-color: rgba(31, 56, 100, 0.8);
+    box-shadow: 0 0 20px rgba(14, 124, 123, 0.5);
+  }
+}
+
+.hire-me-glow {
+  animation: border-glow 3s infinite alternate;
+}
+
+/* Glassmorphism custom classes */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.glass-panel-light {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(31, 56, 100, 0.08);
+}
