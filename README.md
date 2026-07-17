@@ -214,6 +214,7 @@ npm run build
 cd "c:\Vijay\Project\vijay portfolio"
 git init
 ```
+*(Note: Repository already initialized and pushed to GitHub)*
 
 ### Step 2: Create .gitignore
 The `.gitignore` file is already configured to exclude:
@@ -240,7 +241,7 @@ git commit -m "Initial commit: Portfolio website with admin panel"
 ### Step 5: Push to GitHub
 ```bash
 # Add remote repository (replace YOUR_USERNAME with your GitHub username)
-git remote add origin https://github.com/YOUR_USERNAME/vijay-portfolio.git
+git remote add origin https://github.com/vijaypatel35136/vijay_portfolio.git
 
 # Push to GitHub
 git branch -M main
@@ -250,8 +251,8 @@ git push -u origin main
 ### Step 6: Clone from GitHub (for others to run)
 ```bash
 # Clone the repository
-git clone https://github.com/YOUR_USERNAME/vijay-portfolio.git
-cd vijay-portfolio
+git clone https://github.com/vijaypatel35136/vijay_portfolio.git
+cd vijay_portfolio
 
 # Install dependencies
 npm install
@@ -358,15 +359,22 @@ VITE_API_URL=https://your-backend-url.com
 
 After following these steps, your repository will be available at:
 ```
-https://github.com/YOUR_USERNAME/vijay-portfolio
+https://github.com/vijaypatel35136/vijay_portfolio
 ```
 
 Others can clone and run it with:
 ```bash
-git clone https://github.com/YOUR_USERNAME/vijay-portfolio.git
-cd vijay-portfolio
+git clone https://github.com/vijaypatel35136/vijay_portfolio.git
+cd vijay_portfolio
 npm install
 npm run dev
+```
+
+### GitHub Pages URL
+
+After enabling GitHub Pages with the automated workflow, your site will be available at:
+```
+https://vijaypatel35136.github.io/vijay_portfolio/
 ```
 
 ## 🎯 How It Works
