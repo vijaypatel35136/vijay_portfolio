@@ -4,6 +4,7 @@ import path from 'path'
 
 export default defineConfig({
   root: 'client',
+  base: '/vijay_portfolio/',
   plugins: [react()],
   resolve: {
     alias: {
