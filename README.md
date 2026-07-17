@@ -207,6 +207,168 @@ npm run build
 - Connect PostgreSQL database
 - Deploy server folder
 
+## 📤 GitHub Setup & Deployment
+
+### Step 1: Initialize Git Repository
+```bash
+cd "c:\Vijay\Project\vijay portfolio"
+git init
+```
+
+### Step 2: Create .gitignore
+The `.gitignore` file is already configured to exclude:
+- `node_modules/` (dependencies)
+- `.env` (environment variables)
+- `dist/` (build output)
+- `uploads/` (uploaded files)
+- Editor files (`.vscode`, `.idea`)
+
+### Step 3: Add Files to Git
+```bash
+git add .
+git commit -m "Initial commit: Portfolio website with admin panel"
+```
+
+### Step 4: Create GitHub Repository
+1. Go to [GitHub](https://github.com) and sign in
+2. Click the "+" icon → "New repository"
+3. Repository name: `vijay-portfolio` (or your preferred name)
+4. Make it **Public** (for portfolio visibility)
+5. Don't initialize with README (you already have one)
+6. Click "Create repository"
+
+### Step 5: Push to GitHub
+```bash
+# Add remote repository (replace YOUR_USERNAME with your GitHub username)
+git remote add origin https://github.com/YOUR_USERNAME/vijay-portfolio.git
+
+# Push to GitHub
+git branch -M main
+git push -u origin main
+```
+
+### Step 6: Clone from GitHub (for others to run)
+```bash
+# Clone the repository
+git clone https://github.com/YOUR_USERNAME/vijay-portfolio.git
+cd vijay-portfolio
+
+# Install dependencies
+npm install
+
+# Setup environment variables
+cp .env.example .env
+# Edit .env with your database credentials
+
+# Run database migrations
+npm run db:migrate
+
+# Start development server
+npm run dev
+```
+
+### Step 7: GitHub Pages Deployment (Frontend Only)
+
+#### Option A: Using GitHub Pages (Free)
+1. Go to your GitHub repository
+2. Click "Settings" → "Pages"
+3. Source: Deploy from a branch
+4. Branch: `main` → `/ (root)` or `/dist` folder
+5. Click "Save"
+
+For GitHub Pages with Vite, you may need to update `vite.config.ts`:
+```typescript
+export default defineConfig({
+  base: '/vijay-portfolio/', // Your repository name
+  // ... rest of config
+})
+```
+
+#### Option B: Using Vercel (Recommended)
+1. Install Vercel CLI: `npm i -g vercel`
+2. Run: `vercel`
+3. Follow the prompts
+4. Your site will be live at `https://your-project.vercel.app`
+
+#### Option C: Using Netlify
+1. Build the project: `npm run build`
+2. Drag and drop the `dist` folder to Netlify
+3. Or connect Netlify to your GitHub repository
+
+### Step 8: Backend Deployment (Render/Railway)
+
+#### Using Render (Free tier available)
+1. Create account at [render.com](https://render.com)
+2. Click "New" → "Web Service"
+3. Connect your GitHub repository
+4. Configure:
+   - Build Command: `npm install`
+   - Start Command: `npm run dev:server`
+   - Environment Variables: Add all from your `.env` file
+5. Deploy
+
+#### Using Railway (Free tier available)
+1. Create account at [railway.app](https://railway.app)
+2. Click "New Project" → "Deploy from GitHub repo"
+3. Select your repository
+4. Add PostgreSQL database
+5. Configure environment variables
+6. Deploy
+
+### Step 9: Environment Variables for Production
+
+When deploying to production, set these environment variables:
+
+```bash
+# Database (use your cloud provider's connection string)
+DATABASE_URL=postgresql://user:password@host:port/database
+
+# JWT Secret (use a strong random string)
+JWT_SECRET=your-super-secret-jwt-key
+
+# Server Port
+PORT=3001
+
+# Node Environment
+NODE_ENV=production
+```
+
+### Step 10: Update Frontend API URL
+
+For production deployment, update the API base URL in your frontend:
+
+**Option 1: Use relative paths (works with same domain)**
+```typescript
+// In your API calls, use relative paths
+fetch('/api/profile') // Works if frontend and backend on same domain
+```
+
+**Option 2: Use environment variable**
+```typescript
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+fetch(`${API_URL}/api/profile`)
+```
+
+Add to `.env`:
+```bash
+VITE_API_URL=https://your-backend-url.com
+```
+
+### GitHub Repository URL Example
+
+After following these steps, your repository will be available at:
+```
+https://github.com/YOUR_USERNAME/vijay-portfolio
+```
+
+Others can clone and run it with:
+```bash
+git clone https://github.com/YOUR_USERNAME/vijay-portfolio.git
+cd vijay-portfolio
+npm install
+npm run dev
+```
+
 ## 🎯 How It Works
 
 1. **Contact Form Flow:**

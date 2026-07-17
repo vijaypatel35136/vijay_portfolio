@@ -1,7 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap');
 :root {
   --color-navy-900: #0B1220;
   --color-navy-800: #111a2c;
@@ -333,8 +333,6 @@ input:focus, textarea:focus {
    comment-style eyebrows, monospace data, syntax-color accents,
    a git-log timeline. Import this AFTER your Tailwind base/components/utilities.
    ========================================================================== */
-
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
   /* Surfaces */
