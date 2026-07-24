@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Lock, ArrowRight, Shield, User } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { api } from '../utils/api'
 
 export default function AdminLogin() {
   const navigate = useNavigate()
@@ -16,12 +17,7 @@ export default function AdminLogin() {
     setLoading(true)
 
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      })
-
+      const response = await api.post('/api/auth/login', { email, password })
       const data = await response.json()
 
       if (response.ok) {

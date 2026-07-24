@@ -12,6 +12,7 @@ import {
   LogOut, 
   Eye
 } from 'lucide-react'
+import { api } from '../utils/api'
 import ProfileManager from '../components/admin/ProfileManager'
 import SkillsManager from '../components/admin/SkillsManager'
 import ExperienceManager from '../components/admin/ExperienceManager'
@@ -49,7 +50,7 @@ export default function AdminDashboard() {
 
   const checkBackendHealth = async () => {
     try {
-      const response = await fetch('/api/health')
+      const response = await api.get('/api/health')
       if (response.ok) {
         setBackendStatus('connected')
       } else {
@@ -62,9 +63,7 @@ export default function AdminDashboard() {
 
   const fetchDashboardData = async () => {
     try {
-      const response = await fetch('/api/admin/stats', {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
-      })
+      const response = await api.get('/api/admin/stats')
       if (response.ok) {
         const data = await response.json()
         setStats(data)

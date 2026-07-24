@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { ArrowRight, Download, Mail, Phone, Linkedin, Github, ExternalLink, ChevronUp, Terminal } from 'lucide-react'
 import ContactForm from '../components/ContactForm'
+import { api } from '../utils/api'
 // Typewriter hook
 function useTypewriter(texts: string[], speed = 80, deleteSpeed = 40, pauseTime = 2000) {
   const [displayText, setDisplayText] = useState('')
@@ -125,11 +126,11 @@ export default function Home() {
     async function fetchData() {
       try {
         const [profileRes, skillsRes, expRes, projectsRes, eduRes] = await Promise.all([
-          fetch('/api/profile'),
-          fetch('/api/skills'),
-          fetch('/api/experience'),
-          fetch('/api/projects'),
-          fetch('/api/education'),
+          api.get('/api/profile'),
+          api.get('/api/skills'),
+          api.get('/api/experience'),
+          api.get('/api/projects'),
+          api.get('/api/education'),
         ])
 
         if (profileRes.ok) setProfile(await profileRes.json())

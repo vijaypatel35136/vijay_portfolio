@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Send, CheckCircle, XCircle } from 'lucide-react'
+import { api } from '../utils/api'
 
 export default function ContactForm() {
   const [formData, setFormData] = useState({
@@ -26,12 +27,7 @@ export default function ContactForm() {
     setErrorMessage('')
 
     try {
-      const response = await fetch('/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      })
-
+      const response = await api.post('/api/contact', formData)
       const data = await response.json()
 
       if (response.ok) {
