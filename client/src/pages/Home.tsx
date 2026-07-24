@@ -46,6 +46,9 @@ interface Profile {
   projects_count: number
   education?: string
   resume_url?: string
+  resume_file_data?: string
+  resume_file_type?: string
+  resume_file_name?: string
 }
 
 interface Skill {
@@ -216,15 +219,25 @@ export default function Home() {
               <button onClick={() => scrollToSection('#projects')} className="btn-primary px-6 py-3 flex items-center gap-2">
                 View Projects <ArrowRight size={18} />
               </button>
-              {profile?.resume_url ? (
-                <a
-                  href={profile.resume_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
+              {profile?.resume_url || profile?.resume_file_data ? (
+                <button
+                  onClick={() => {
+                    if (profile?.resume_url) {
+                      window.open(profile.resume_url, '_blank')
+                    } else if (profile?.resume_file_data) {
+                      const link = document.createElement('a')
+                      link.href = profile.resume_file_data
+                      link.download = profile.resume_file_name || 'resume'
+                      link.target = '_blank'
+                      document.body.appendChild(link)
+                      link.click()
+                      document.body.removeChild(link)
+                    }
+                  }}
                   className="btn-ghost px-6 py-3 flex items-center gap-2"
                 >
                   <Download size={18} /> Resume
-                </a>
+                </button>
               ) : (
                 <button
                   onClick={() => alert('Please add a resume link in the admin panel.')}

@@ -15,7 +15,10 @@ export interface Profile {
   avatar_url: string
   experience_years: number
   projects_count: number
-  resume_url?: string    // Added field
+  resume_url?: string    // External URL option
+  resume_file_data?: string    // Base64 encoded file data
+  resume_file_type?: string   // MIME type (e.g., 'application/pdf')
+  resume_file_name?: string   // Original filename
 }
 
 export interface Skill {
