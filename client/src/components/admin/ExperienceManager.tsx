@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Plus, Edit2, Trash2, Save, X, Briefcase } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { experienceStorage } from '../../lib/storage'
+import ConfirmationModal from './ConfirmationModal'
 
 interface Experience {
   id: number
@@ -32,6 +33,9 @@ export default function ExperienceManager({ onUpdate }: ExperienceManagerProps) 
     description: '',
     is_current: false
   })
+
+  // Modal state
+  const [deleteId, setDeleteId] = useState<number | null>(null)
 
   useEffect(() => {
     fetchExperiences()
@@ -86,11 +90,12 @@ export default function ExperienceManager({ onUpdate }: ExperienceManagerProps) 
     setEditingId(null)
   }
 
-  const handleDelete = (id: number) => {
-    if (!confirm('Are you sure you want to delete this experience?')) return
-    experienceStorage.delete(id)
+  const handleDelete = () => {
+    if (deleteId === null) return
+    experienceStorage.delete(deleteId)
     fetchExperiences()
     onUpdate()
+    setDeleteId(null)
   }
 
   const parseDescription = (desc: string): string[] => {
@@ -108,6 +113,15 @@ export default function ExperienceManager({ onUpdate }: ExperienceManagerProps) 
 
   return (
     <div className="space-y-6">
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={deleteId !== null}
+        title="Delete Experience"
+        message="Are you sure you want to delete this experience entry? This action cannot be undone."
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteId(null)}
+      />
+
       {/* Header */}
       <div className="flex justify-between items-center">
         <h2 className="font-heading text-2xl font-bold text-navy-800">Experience Manager</h2>
@@ -287,7 +301,7 @@ export default function ExperienceManager({ onUpdate }: ExperienceManagerProps) 
                       <Edit2 size={18} />
                     </button>
                     <button
-                      onClick={() => handleDelete(exp.id)}
+                      onClick={() => setDeleteId(exp.id)}
                       className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
                     >
                       <Trash2 size={18} />

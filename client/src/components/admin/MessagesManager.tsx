@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Trash2, Mail, MailOpen, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { messagesStorage } from '../../lib/storage'
+import ConfirmationModal from './ConfirmationModal'
 
 interface Message {
   id: number
@@ -22,6 +23,9 @@ export default function MessagesManager({ onUpdate }: MessagesManagerProps) {
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null)
   const [loading, setLoading] = useState(true)
 
+  // Modal state
+  const [deleteId, setDeleteId] = useState<number | null>(null)
+
   useEffect(() => {
     fetchMessages()
   }, [])
@@ -41,14 +45,15 @@ export default function MessagesManager({ onUpdate }: MessagesManagerProps) {
     onUpdate()
   }
 
-  const handleDelete = (id: number) => {
-    if (!confirm('Are you sure you want to delete this message?')) return
-    messagesStorage.delete(id)
+  const handleDelete = () => {
+    if (deleteId === null) return
+    messagesStorage.delete(deleteId)
     fetchMessages()
     onUpdate()
-    if (selectedMessage?.id === id) {
+    if (selectedMessage?.id === deleteId) {
       setSelectedMessage(null)
     }
+    setDeleteId(null)
   }
 
   const openMessage = (message: Message) => {
@@ -69,6 +74,14 @@ export default function MessagesManager({ onUpdate }: MessagesManagerProps) {
 
   return (
     <div className="space-y-6">
+      <ConfirmationModal
+        isOpen={deleteId !== null}
+        title="Delete Message"
+        message="Are you sure you want to delete this message? This action cannot be undone."
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteId(null)}
+      />
+
       {messages.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
           <Mail className="w-16 h-16 text-gray-300 mx-auto mb-4" />
@@ -144,7 +157,7 @@ export default function MessagesManager({ onUpdate }: MessagesManagerProps) {
                     </div>
                     <div className="flex gap-2">
                       <button
-                        onClick={() => handleDelete(selectedMessage.id)}
+                        onClick={() => setDeleteId(selectedMessage.id)}
                         className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                         title="Delete"
                       >

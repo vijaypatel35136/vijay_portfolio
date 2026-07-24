@@ -10,7 +10,8 @@ import {
   MessageSquare, 
   Settings, 
   LogOut, 
-  Eye
+  Eye,
+  FileText
 } from 'lucide-react'
 import { authStorage, projectsStorage, messagesStorage } from '../lib/storage'
 import ProfileManager from '../components/admin/ProfileManager'
@@ -19,6 +20,7 @@ import ExperienceManager from '../components/admin/ExperienceManager'
 import ProjectsManager from '../components/admin/ProjectsManager'
 import EducationManager from '../components/admin/EducationManager'
 import MessagesManager from '../components/admin/MessagesManager'
+import ResumeManager from '../components/admin/ResumeManager'
 
 interface DashboardStats {
   totalProjects: number
@@ -67,6 +69,7 @@ export default function AdminDashboard() {
     { id: 'experience', label: 'Experience', icon: Briefcase },
     { id: 'projects', label: 'Projects', icon: FolderOpen },
     { id: 'education', label: 'Education', icon: GraduationCap },
+    { id: 'resume', label: 'Resume', icon: FileText },
     { id: 'messages', label: 'Messages', icon: MessageSquare },
     { id: 'settings', label: 'Settings', icon: Settings },
   ]
@@ -229,6 +232,7 @@ export default function AdminDashboard() {
           {activeTab === 'experience' && <ExperienceManager onUpdate={fetchDashboardData} />}
           {activeTab === 'projects' && <ProjectsManager onUpdate={fetchDashboardData} />}
           {activeTab === 'education' && <EducationManager onUpdate={fetchDashboardData} />}
+          {activeTab === 'resume' && <ResumeManager onUpdate={fetchDashboardData} />}
           {activeTab === 'messages' && <MessagesManager onUpdate={fetchDashboardData} />}
           {activeTab === 'settings' && (
             <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">

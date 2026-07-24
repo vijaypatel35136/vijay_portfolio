@@ -45,6 +45,7 @@ interface Profile {
   experience_years: number
   projects_count: number
   education?: string
+  resume_url?: string
 }
 
 interface Skill {
@@ -215,9 +216,23 @@ export default function Home() {
               <button onClick={() => scrollToSection('#projects')} className="btn-primary px-6 py-3 flex items-center gap-2">
                 View Projects <ArrowRight size={18} />
               </button>
-              <button className="btn-ghost px-6 py-3 flex items-center gap-2">
-                <Download size={18} /> Resume
-              </button>
+              {profile?.resume_url ? (
+                <a
+                  href={profile.resume_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-ghost px-6 py-3 flex items-center gap-2"
+                >
+                  <Download size={18} /> Resume
+                </a>
+              ) : (
+                <button
+                  onClick={() => alert('Please add a resume link in the admin panel.')}
+                  className="btn-ghost px-6 py-3 flex items-center gap-2"
+                >
+                  <Download size={18} /> Resume
+                </button>
+              )}
               <button onClick={() => scrollToSection('#contact')} className="btn-ghost px-6 py-3 flex items-center gap-2">
                 <Terminal size={18} /> Hire Me
               </button>

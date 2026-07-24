@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Plus, Edit2, Trash2, Save, X, ExternalLink, Star } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { projectsStorage } from '../../lib/storage'
+import ConfirmationModal from './ConfirmationModal'
 
 interface Project {
   id: number
@@ -30,6 +31,9 @@ export default function ProjectsManager({ onUpdate }: ProjectsManagerProps) {
     category: 'Shopify',
     is_featured: false,
   })
+
+  // Modal state
+  const [deleteId, setDeleteId] = useState<number | null>(null)
 
   useEffect(() => {
     fetchProjects()
@@ -87,11 +91,12 @@ export default function ProjectsManager({ onUpdate }: ProjectsManagerProps) {
     setEditingId(null)
   }
 
-  const handleDelete = (id: number) => {
-    if (!confirm('Are you sure you want to delete this project?')) return
-    projectsStorage.delete(id)
+  const handleDelete = () => {
+    if (deleteId === null) return
+    projectsStorage.delete(deleteId)
     fetchProjects()
     onUpdate()
+    setDeleteId(null)
   }
 
   const toggleFeatured = (id: number, currentStatus: boolean) => {
@@ -122,6 +127,15 @@ export default function ProjectsManager({ onUpdate }: ProjectsManagerProps) {
 
   return (
     <div className="space-y-6">
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={deleteId !== null}
+        title="Delete Project"
+        message="Are you sure you want to delete this project? This action cannot be undone."
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteId(null)}
+      />
+
       {/* Header */}
       <div className="flex justify-between items-center">
         <h2 className="font-heading text-2xl font-bold text-navy-800">Projects Manager</h2>
@@ -330,7 +344,7 @@ export default function ProjectsManager({ onUpdate }: ProjectsManagerProps) {
                         <Edit2 size={16} />
                       </button>
                       <button
-                        onClick={() => handleDelete(project.id)}
+                        onClick={() => setDeleteId(project.id)}
                         className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
                       >
                         <Trash2 size={16} />

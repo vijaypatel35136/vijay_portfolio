@@ -14,6 +14,7 @@ interface ProfileForm {
   location: string
   experience_years: number
   projects_count: number
+  resume_url: string
 }
 
 interface ProfileManagerProps {
@@ -43,6 +44,7 @@ export default function ProfileManager({ onUpdate }: ProfileManagerProps) {
       location: data.location,
       experience_years: data.experience_years || 0,
       projects_count: data.projects_count || 0,
+      resume_url: data.resume_url || '',
     })
     setLoading(false)
   }
@@ -66,6 +68,7 @@ export default function ProfileManager({ onUpdate }: ProfileManagerProps) {
         location: profile.location,
         experience_years: profile.experience_years,
         projects_count: profile.projects_count,
+        resume_url: profile.resume_url,
       })
       setMessage('Profile updated successfully!')
       onUpdate()
@@ -263,6 +266,18 @@ export default function ProfileManager({ onUpdate }: ProfileManagerProps) {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-black"
             />
           </div>
+        </div>
+        
+        {/* Resume URL */}
+        <div>
+          <label className="block text-sm font-semibold text-navy-800 mb-2">Resume Document URL / Link</label>
+          <input
+            type="url"
+            value={profile.resume_url}
+            onChange={(e) => setProfile({ ...profile, resume_url: e.target.value })}
+            placeholder="https://drive.google.com/... or /resume.pdf"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-black"
+          />
         </div>
 
         {/* Submit Button */}

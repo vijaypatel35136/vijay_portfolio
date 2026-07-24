@@ -15,6 +15,7 @@ export interface Profile {
   avatar_url: string
   experience_years: number
   projects_count: number
+  resume_url?: string    // Added field
 }
 
 export interface Skill {
@@ -54,6 +55,7 @@ export interface Education {
   start_date: string
   end_date: string | null
   gpa: string | null
+  description?: string
 }
 
 export interface ContactMessage {
@@ -86,6 +88,7 @@ const defaultProfile: Profile = {
   avatar_url: '',
   experience_years: 2,
   projects_count: 15,
+  resume_url: ''
 }
 
 const defaultSkills: Skill[] = [
@@ -182,7 +185,7 @@ const STORAGE_KEYS = {
   ADMIN_TOKEN: 'portfolio_admin_token',
 }
 
-const STORAGE_VERSION = 'v2'
+const STORAGE_VERSION = 'v3'
 
 // Initialize storage with default data
 function initializeStorage() {

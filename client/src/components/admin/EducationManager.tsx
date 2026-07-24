@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Plus, Edit2, Trash2, Save, X, GraduationCap } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { educationStorage } from '../../lib/storage'
+import ConfirmationModal from './ConfirmationModal'
 
 interface Education {
   id: number
@@ -9,8 +10,9 @@ interface Education {
   institution: string
   location: string
   start_date: string
-  end_date: string
-  description: string
+  end_date: string | null
+  gpa: string | null
+  description?: string
 }
 
 interface EducationManagerProps {
@@ -28,8 +30,12 @@ export default function EducationManager({ onUpdate }: EducationManagerProps) {
     location: '',
     start_date: '',
     end_date: '',
+    gpa: '',
     description: ''
   })
+
+  // Modal state
+  const [deleteId, setDeleteId] = useState<number | null>(null)
 
   useEffect(() => {
     fetchEducations()
@@ -37,9 +43,9 @@ export default function EducationManager({ onUpdate }: EducationManagerProps) {
 
   const fetchEducations = () => {
     const data = educationStorage.get()
-    setEducations(data.map((edu: any) => ({
+    setEducations(data.map((edu) => ({
       ...edu,
-      description: ''
+      end_date: edu.end_date || null
     })))
     setLoading(false)
   }
@@ -48,7 +54,8 @@ export default function EducationManager({ onUpdate }: EducationManagerProps) {
     e.preventDefault()
     educationStorage.add({
       ...formData,
-      gpa: null
+      gpa: formData.gpa || null,
+      description: formData.description || undefined
     })
     setFormData({
       degree: '',
@@ -56,6 +63,7 @@ export default function EducationManager({ onUpdate }: EducationManagerProps) {
       location: '',
       start_date: '',
       end_date: '',
+      gpa: '',
       description: ''
     })
     setShowAddForm(false)
@@ -67,19 +75,19 @@ export default function EducationManager({ onUpdate }: EducationManagerProps) {
     const edu = educations.find(e => e.id === id)
     if (!edu) return
     educationStorage.update(id, {
-      ...edu,
-      gpa: null
+      ...edu
     })
     fetchEducations()
     onUpdate()
     setEditingId(null)
   }
 
-  const handleDelete = (id: number) => {
-    if (!confirm('Are you sure you want to delete this education?')) return
-    educationStorage.delete(id)
+  const handleDelete = () => {
+    if (deleteId === null) return
+    educationStorage.delete(deleteId)
     fetchEducations()
     onUpdate()
+    setDeleteId(null)
   }
 
   if (loading) {
@@ -93,6 +101,15 @@ export default function EducationManager({ onUpdate }: EducationManagerProps) {
 
   return (
     <div className="space-y-6">
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={deleteId !== null}
+        title="Delete Education"
+        message="Are you sure you want to delete this education entry? This action cannot be undone."
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteId(null)}
+      />
+
       {/* Header */}
       <div className="flex justify-between items-center">
         <h2 className="font-heading text-2xl font-bold text-navy-800">Education Manager</h2>
@@ -243,12 +260,12 @@ export default function EducationManager({ onUpdate }: EducationManagerProps) {
                 <div className="grid md:grid-cols-2 gap-4">
                   <input
                     type="date"
-                    value={edu.end_date}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEducations(educations.map(item => item.id === edu.id ? { ...item, end_date: e.target.value } : item))}
+                    value={edu.end_date || ''}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEducations(educations.map(item => item.id === edu.id ? { ...item, end_date: e.target.value || null } : item))}
                     className="px-3 py-2 border border-gray-300 rounded text-sm"
                   />
                   <textarea
-                    value={edu.description}
+                    value={edu.description || ''}
                     onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setEducations(educations.map(item => item.id === edu.id ? { ...item, description: e.target.value } : item))}
                     rows={2}
                     className="px-3 py-2 border border-gray-300 rounded text-sm"
@@ -282,8 +299,7 @@ export default function EducationManager({ onUpdate }: EducationManagerProps) {
                       <p className="text-teal-600 font-semibold">{edu.institution}</p>
                       <p className="text-sm text-gray-600">{edu.location}</p>
                       <p className="text-sm text-gray-500 mt-1">
-                        {new Date(edu.start_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })} - {' '}
-                        {new Date(edu.end_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                        {edu.start_date} – {edu.end_date || 'Present'}
                       </p>
                     </div>
                   </div>
@@ -295,7 +311,7 @@ export default function EducationManager({ onUpdate }: EducationManagerProps) {
                       <Edit2 size={18} />
                     </button>
                     <button
-                      onClick={() => handleDelete(edu.id)}
+                      onClick={() => setDeleteId(edu.id)}
                       className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
                     >
                       <Trash2 size={18} />
