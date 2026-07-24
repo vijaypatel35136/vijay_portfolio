@@ -274,13 +274,13 @@ export default function ExperienceManager({ onUpdate }: ExperienceManagerProps) 
                   <input
                     type="text"
                     value={exp.title}
-                    onChange={(e) => setExperiences(experiences.map(e => e.id === exp.id ? { ...e, title: e.target.value } : e))}
+                    onChange={(event) => setExperiences(experiences.map(e => e.id === exp.id ? { ...e, title: event.target.value } : e))}
                     className="px-3 py-2 border border-gray-300 rounded text-sm"
                   />
                   <input
                     type="text"
                     value={exp.company}
-                    onChange={(e) => setExperiences(experiences.map(e => e.id === exp.id ? { ...e, company: e.target.value } : e))}
+                    onChange={(event) => setExperiences(experiences.map(e => e.id === exp.id ? { ...e, company: event.target.value } : e))}
                     className="px-3 py-2 border border-gray-300 rounded text-sm"
                   />
                 </div>
