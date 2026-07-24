@@ -1,42 +1,38 @@
-# Vercel Deployment Guide
+# GitHub Pages Deployment Guide
 
-This guide explains how to deploy your portfolio to Vercel with proper API configuration.
+This guide explains how to deploy your portfolio to GitHub Pages with proper API configuration.
 
 ## Prerequisites
 
 - Backend deployed to a hosting service (Render, Railway, etc.)
 - Backend API URL available (e.g., https://your-backend.onrender.com)
+- GitHub repository with GitHub Pages enabled
 
-## Vercel Environment Variables
+## GitHub Pages Setup
 
-When deploying to Vercel, you need to set the following environment variable:
+### 1. Enable GitHub Pages
 
-### `VITE_API_URL` (Required)
+- Go to your repository on GitHub
+- Navigate to Settings → Pages
+- Source: GitHub Actions
+- The workflow in `.github/workflows/deploy.yml` will handle deployment
 
-This is the URL of your deployed backend API.
+### 2. Set GitHub Secrets
 
-**Example:**
-```
-VITE_API_URL=https://your-backend.onrender.com
-```
+- Go to Settings → Secrets and variables → Actions
+- Add a new secret:
+  - Name: `VITE_API_URL`
+  - Value: Your backend API URL (e.g., https://your-backend.onrender.com)
 
-**How to set:**
-1. Go to your Vercel project dashboard
-2. Navigate to Settings → Environment Variables
-3. Add a new variable:
-   - Name: `VITE_API_URL`
-   - Value: Your backend API URL (e.g., https://your-backend.onrender.com)
-   - Environments: Production, Preview, Development
+## Backend Configuration
 
-## Backend CORS Configuration
-
-Your backend must be configured to accept requests from your Vercel domain.
+Your backend must be configured to accept requests from your GitHub Pages domain.
 
 ### Backend Environment Variables
 
 Set these in your backend hosting service:
 
-- `FRONTEND_URL`: Your Vercel domain (e.g., https://your-portfolio.vercel.app)
+- `FRONTEND_URL`: Your GitHub Pages URL (e.g., https://vijaypatel35136.github.io/vijay_portfolio/)
 - `NODE_ENV`: `production`
 
 ### Example Backend CORS Setup
@@ -54,25 +50,26 @@ app.use(cors({
 
 1. Deploy your backend to Render, Railway, or similar service
 2. Note the backend API URL (e.g., https://your-backend.onrender.com)
-3. Set `FRONTEND_URL` environment variable to your Vercel domain
+3. Set `FRONTEND_URL` environment variable to your GitHub Pages URL
 
-### 2. Deploy Frontend to Vercel
+### 2. Deploy Frontend to GitHub Pages
 
-1. Connect your GitHub repository to Vercel
-2. Configure build settings:
-   - **Framework Preset**: Vite
-   - **Root Directory**: `client`
-   - **Build Command**: `npm run build`
-   - **Output Directory**: `dist`
-3. Set `VITE_API_URL` environment variable to your backend URL
-4. Deploy
+1. Push your code to GitHub
+2. The workflow will automatically build and deploy to GitHub Pages
+3. Visit your GitHub Pages URL after deployment completes
 
 ### 3. Test the Deployment
 
-1. Visit your Vercel URL
+1. Visit https://vijaypatel35136.github.io/vijay_portfolio/
 2. Try accessing the admin panel
 3. Test login with your admin credentials
 4. Verify all API calls work correctly
+
+## Configuration Notes
+
+The `vite.config.ts` is already configured with:
+- `base: '/vijay_portfolio/'` - matches your GitHub Pages repository name
+- Build output to `../dist` - correct for GitHub Pages workflow
 
 ## Troubleshooting
 
@@ -81,7 +78,7 @@ app.use(cors({
 **Problem**: "Network error. Please try again." when trying to login
 
 **Solutions**:
-1. Check that `VITE_API_URL` is set correctly in Vercel
+1. Check that `VITE_API_URL` is set correctly in GitHub Secrets
 2. Verify backend is running and accessible
 3. Check backend CORS configuration
 4. Ensure `FRONTEND_URL` is set in backend environment variables
@@ -92,8 +89,8 @@ app.use(cors({
 **Problem**: CORS policy errors in browser console
 
 **Solutions**:
-1. Verify backend CORS allows your Vercel domain
-2. Check that `FRONTEND_URL` matches your Vercel domain exactly
+1. Verify backend CORS allows your GitHub Pages domain
+2. Check that `FRONTEND_URL` matches your GitHub Pages domain exactly
 3. Ensure backend is configured with `credentials: true` if using cookies
 
 ### API Calls Failing
@@ -108,11 +105,11 @@ app.use(cors({
 
 ## Environment Variables Summary
 
-### Frontend (Vercel)
-- `VITE_API_URL`: Backend API URL (required)
+### Frontend (GitHub Pages)
+- `VITE_API_URL`: Backend API URL (required) - set in GitHub Secrets
 
 ### Backend (Render/Railway)
-- `FRONTEND_URL`: Vercel domain (required for CORS)
+- `FRONTEND_URL`: GitHub Pages domain (required for CORS)
 - `NODE_ENV`: `production`
 - `PORT`: Provided by hosting service
 - `JWT_SECRET`: Your JWT secret
@@ -121,14 +118,14 @@ app.use(cors({
 
 ## Example Configuration
 
-### Vercel Environment Variables
+### GitHub Secrets
 ```
 VITE_API_URL=https://vijay-portfolio-backend.onrender.com
 ```
 
 ### Backend Environment Variables (Render)
 ```
-FRONTEND_URL=https://vijay-portfolio.vercel.app
+FRONTEND_URL=https://vijaypatel35136.github.io/vijay_portfolio/
 NODE_ENV=production
 JWT_SECRET=your-secure-jwt-secret
 DB_HOST=your-db-host
