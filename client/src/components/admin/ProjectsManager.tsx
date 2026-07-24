@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react'
 import { Plus, Edit2, Trash2, Save, X, ExternalLink, Star } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { projectsStorage } from '../../lib/storage'
 
 interface Project {
   id: number
   name: string
   url: string
   description: string
-  tech_stack: string
+  tech_stack: string   // comma-separated string for the form input
   category: string
   is_featured: boolean
 }
@@ -27,120 +28,87 @@ export default function ProjectsManager({ onUpdate }: ProjectsManagerProps) {
     description: '',
     tech_stack: '',
     category: 'Shopify',
-    is_featured: false
+    is_featured: false,
   })
 
   useEffect(() => {
     fetchProjects()
   }, [])
 
-  const fetchProjects = async () => {
-    try {
-      const response = await fetch('/api/projects')
-      if (response.ok) {
-        const data = await response.json()
-        setProjects(data)
-      }
-    } catch (error) {
-      console.error('Failed to fetch projects')
-    } finally {
-      setLoading(false)
-    }
+  const fetchProjects = () => {
+    const data = projectsStorage.get()
+    setProjects(
+      data.map((p) => ({
+        id: p.id,
+        name: p.name,
+        url: p.url,
+        description: p.description,
+        tech_stack: Array.isArray(p.tech_stack) ? p.tech_stack.join(', ') : '',
+        category: p.category,
+        is_featured: p.is_featured,
+      }))
+    )
+    setLoading(false)
   }
 
-  const handleAdd = async (e: React.FormEvent) => {
+  const handleAdd = (e: React.FormEvent) => {
     e.preventDefault()
-    try {
-      const response = await fetch('/api/projects', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-        },
-        body: JSON.stringify(formData)
-      })
-
-      if (response.ok) {
-        fetchProjects()
-        onUpdate()
-        setFormData({
-          name: '',
-          url: '',
-          description: '',
-          tech_stack: '',
-          category: 'Shopify',
-          is_featured: false
-        })
-        setShowAddForm(false)
-      }
-    } catch (error) {
-      console.error('Failed to add project')
-    }
+    projectsStorage.add({
+      name: formData.name,
+      url: formData.url,
+      description: formData.description,
+      tech_stack: formData.tech_stack.split(',').map((s) => s.trim()).filter(Boolean),
+      category: formData.category,
+      is_featured: formData.is_featured,
+      image_url: '',
+      github_url: '',
+    })
+    setFormData({ name: '', url: '', description: '', tech_stack: '', category: 'Shopify', is_featured: false })
+    setShowAddForm(false)
+    fetchProjects()
+    onUpdate()
   }
 
-  const handleUpdate = async (id: number) => {
-    const project = projects.find(p => p.id === id)
+  const handleUpdate = (id: number) => {
+    const project = projects.find((p) => p.id === id)
     if (!project) return
-
-    try {
-      const response = await fetch(`/api/projects/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-        },
-        body: JSON.stringify(project)
-      })
-
-      if (response.ok) {
-        fetchProjects()
-        onUpdate()
-        setEditingId(null)
-      }
-    } catch (error) {
-      console.error('Failed to update project')
-    }
+    projectsStorage.update(id, {
+      name: project.name,
+      url: project.url,
+      description: project.description,
+      tech_stack: project.tech_stack.split(',').map((s) => s.trim()).filter(Boolean),
+      category: project.category,
+      is_featured: project.is_featured,
+      image_url: '',
+      github_url: '',
+    })
+    fetchProjects()
+    onUpdate()
+    setEditingId(null)
   }
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = (id: number) => {
     if (!confirm('Are you sure you want to delete this project?')) return
-
-    try {
-      const response = await fetch(`/api/projects/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
-      })
-
-      if (response.ok) {
-        fetchProjects()
-        onUpdate()
-      }
-    } catch (error) {
-      console.error('Failed to delete project')
-    }
+    projectsStorage.delete(id)
+    fetchProjects()
+    onUpdate()
   }
 
-  const toggleFeatured = async (id: number, currentStatus: boolean) => {
-    const project = projects.find(p => p.id === id)
+  const toggleFeatured = (id: number, currentStatus: boolean) => {
+    const project = projects.find((p) => p.id === id)
     if (!project) return
-
-    try {
-      const response = await fetch(`/api/projects/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-        },
-        body: JSON.stringify({ ...project, is_featured: !currentStatus })
-      })
-
-      if (response.ok) {
-        fetchProjects()
-        onUpdate()
-      }
-    } catch (error) {
-      console.error('Failed to toggle featured status')
-    }
+    projectsStorage.update(id, {
+      name: project.name,
+      url: project.url,
+      description: project.description,
+      tech_stack: project.tech_stack.split(',').map((s) => s.trim()).filter(Boolean),
+      category: project.category,
+      is_featured: !currentStatus,
+      image_url: '',
+      github_url: '',
+    })
+    fetchProjects()
+    onUpdate()
   }
 
   if (loading) {
@@ -182,7 +150,7 @@ export default function ProjectsManager({ onUpdate }: ProjectsManagerProps) {
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-black"
                   required
                 />
               </div>
@@ -192,7 +160,8 @@ export default function ProjectsManager({ onUpdate }: ProjectsManagerProps) {
                   type="url"
                   value={formData.url}
                   onChange={(e) => setFormData({ ...formData, url: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  placeholder="https://..."
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-black"
                   required
                 />
               </div>
@@ -204,41 +173,46 @@ export default function ProjectsManager({ onUpdate }: ProjectsManagerProps) {
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 rows={3}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-black"
               />
             </div>
 
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-navy-800 mb-2">Tech Stack</label>
+                <label className="block text-sm font-semibold text-navy-800 mb-2">Tech Stack (comma separated)</label>
                 <input
                   type="text"
                   value={formData.tech_stack}
                   onChange={(e) => setFormData({ ...formData, tech_stack: e.target.value })}
-                  placeholder="React, TypeScript, Node.js"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  placeholder="Shopify Liquid, CSS, JavaScript"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-black"
                 />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-navy-800 mb-2">Category</label>
-                <input
-                  type="text"
+                <select
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                />
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-black"
+                >
+                  <option>Shopify</option>
+                  <option>Python</option>
+                  <option>WordPress</option>
+                  <option>React</option>
+                  <option>Other</option>
+                </select>
               </div>
             </div>
 
             <div className="flex items-center gap-2">
               <input
                 type="checkbox"
-                id="is_featured"
+                id="is_featured_add"
                 checked={formData.is_featured}
                 onChange={(e) => setFormData({ ...formData, is_featured: e.target.checked })}
                 className="w-4 h-4 text-teal-600 border-gray-300 rounded focus:ring-teal-500"
               />
-              <label htmlFor="is_featured" className="text-sm text-gray-700">Featured Project</label>
+              <label htmlFor="is_featured_add" className="text-sm text-gray-700">Featured Project</label>
             </div>
 
             <div className="flex gap-2 justify-end">
@@ -261,99 +235,114 @@ export default function ProjectsManager({ onUpdate }: ProjectsManagerProps) {
       )}
 
       {/* Projects Grid */}
-      <div className="grid md:grid-cols-2 gap-4">
-        {projects.map((project) => (
-          <div key={project.id} className="bg-white rounded-xl border border-gray-200 p-6 relative">
-            {project.is_featured && (
-              <div className="absolute top-4 right-4">
-                <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
-              </div>
-            )}
-            
-            {editingId === project.id ? (
-              <div className="space-y-3">
-                <input
-                  type="text"
-                  value={project.name}
-                  onChange={(e) => setProjects(projects.map(p => p.id === project.id ? { ...p, name: e.target.value } : p))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
-                />
-                <input
-                  type="url"
-                  value={project.url}
-                  onChange={(e) => setProjects(projects.map(p => p.id === project.id ? { ...p, url: e.target.value } : p))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
-                />
-                <textarea
-                  value={project.description}
-                  onChange={(e) => setProjects(projects.map(p => p.id === project.id ? { ...p, description: e.target.value } : p))}
-                  rows={2}
-                  className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
-                />
-                <div className="flex gap-2 justify-end">
-                  <button
-                    onClick={() => handleUpdate(project.id)}
-                    className="p-2 text-green-600 hover:bg-green-50 rounded transition-colors"
-                  >
-                    <Save size={16} />
-                  </button>
-                  <button
-                    onClick={() => setEditingId(null)}
-                    className="p-2 text-gray-600 hover:bg-gray-50 rounded transition-colors"
-                  >
-                    <X size={16} />
-                  </button>
+      {projects.length === 0 ? (
+        <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
+          <p className="text-gray-400">No projects yet. Click "Add Project" to get started.</p>
+        </div>
+      ) : (
+        <div className="grid md:grid-cols-2 gap-4">
+          {projects.map((project) => (
+            <div key={project.id} className="bg-white rounded-xl border border-gray-200 p-6 relative">
+              {project.is_featured && (
+                <div className="absolute top-4 right-4">
+                  <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
                 </div>
-              </div>
-            ) : (
-              <>
-                <h3 className="font-heading text-lg font-bold text-navy-800 mb-2 pr-8">{project.name}</h3>
-                <a
-                  href={project.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-teal-600 hover:underline text-sm flex items-center gap-1 mb-3"
-                >
-                  {project.url.replace('https://', '')}
-                  <ExternalLink size={14} />
-                </a>
-                {project.description && (
-                  <p className="text-sm text-gray-600 mb-3">{project.description}</p>
-                )}
-                {project.tech_stack && (
-                  <p className="text-xs text-gray-500 mb-3">
-                    <span className="font-semibold">Tech:</span> {project.tech_stack}
-                  </p>
-                )}
-                <div className="flex items-center justify-between pt-3 border-t border-gray-200">
-                  <span className="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded">{project.category}</span>
-                  <div className="flex gap-2">
+              )}
+
+              {editingId === project.id ? (
+                <div className="space-y-3">
+                  <input
+                    type="text"
+                    value={project.name}
+                    onChange={(e) => setProjects(projects.map((p) => p.id === project.id ? { ...p, name: e.target.value } : p))}
+                    placeholder="Project name"
+                    className="w-full px-3 py-2 border border-gray-300 rounded text-sm text-black"
+                  />
+                  <input
+                    type="url"
+                    value={project.url}
+                    onChange={(e) => setProjects(projects.map((p) => p.id === project.id ? { ...p, url: e.target.value } : p))}
+                    placeholder="https://..."
+                    className="w-full px-3 py-2 border border-gray-300 rounded text-sm text-black"
+                  />
+                  <textarea
+                    value={project.description}
+                    onChange={(e) => setProjects(projects.map((p) => p.id === project.id ? { ...p, description: e.target.value } : p))}
+                    rows={2}
+                    className="w-full px-3 py-2 border border-gray-300 rounded text-sm text-black"
+                  />
+                  <input
+                    type="text"
+                    value={project.tech_stack}
+                    onChange={(e) => setProjects(projects.map((p) => p.id === project.id ? { ...p, tech_stack: e.target.value } : p))}
+                    placeholder="React, TypeScript, ..."
+                    className="w-full px-3 py-2 border border-gray-300 rounded text-sm text-black"
+                  />
+                  <div className="flex gap-2 justify-end">
                     <button
-                      onClick={() => toggleFeatured(project.id, project.is_featured)}
-                      className="p-2 text-yellow-600 hover:bg-yellow-50 rounded transition-colors"
-                      title={project.is_featured ? 'Remove from featured' : 'Mark as featured'}
+                      onClick={() => handleUpdate(project.id)}
+                      className="p-2 text-green-600 hover:bg-green-50 rounded transition-colors"
                     >
-                      <Star size={16} className={project.is_featured ? 'fill-yellow-500' : ''} />
+                      <Save size={16} />
                     </button>
                     <button
-                      onClick={() => setEditingId(project.id)}
-                      className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                      onClick={() => setEditingId(null)}
+                      className="p-2 text-gray-600 hover:bg-gray-50 rounded transition-colors"
                     >
-                      <Edit2 size={16} />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(project.id)}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
-                    >
-                      <Trash2 size={16} />
+                      <X size={16} />
                     </button>
                   </div>
                 </div>
-              </>
-            )}
-          </div>
-        ))}
-      </div>
+              ) : (
+                <>
+                  <h3 className="font-heading text-lg font-bold text-navy-800 mb-2 pr-8">{project.name}</h3>
+                  <a
+                    href={project.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-teal-600 hover:underline text-sm flex items-center gap-1 mb-3"
+                  >
+                    {project.url.replace('https://', '')}
+                    <ExternalLink size={14} />
+                  </a>
+                  {project.description && (
+                    <p className="text-sm text-gray-600 mb-3">{project.description}</p>
+                  )}
+                  {project.tech_stack && (
+                    <p className="text-xs text-gray-500 mb-3">
+                      <span className="font-semibold">Tech:</span> {project.tech_stack}
+                    </p>
+                  )}
+                  <div className="flex items-center justify-between pt-3 border-t border-gray-200">
+                    <span className="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded">{project.category}</span>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => toggleFeatured(project.id, project.is_featured)}
+                        className="p-2 text-yellow-600 hover:bg-yellow-50 rounded transition-colors"
+                        title={project.is_featured ? 'Remove from featured' : 'Mark as featured'}
+                      >
+                        <Star size={16} className={project.is_featured ? 'fill-yellow-500' : ''} />
+                      </button>
+                      <button
+                        onClick={() => setEditingId(project.id)}
+                        className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                      >
+                        <Edit2 size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(project.id)}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

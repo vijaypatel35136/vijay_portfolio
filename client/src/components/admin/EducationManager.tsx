@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Plus, Edit2, Trash2, Save, X, GraduationCap } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { educationStorage } from '../../lib/storage'
 
 interface Education {
   id: number
@@ -34,90 +35,51 @@ export default function EducationManager({ onUpdate }: EducationManagerProps) {
     fetchEducations()
   }, [])
 
-  const fetchEducations = async () => {
-    try {
-      const response = await fetch('/api/education')
-      if (response.ok) {
-        const data = await response.json()
-        setEducations(data)
-      }
-    } catch (error) {
-      console.error('Failed to fetch educations')
-    } finally {
-      setLoading(false)
-    }
+  const fetchEducations = () => {
+    const data = educationStorage.get()
+    setEducations(data.map((edu: any) => ({
+      ...edu,
+      description: ''
+    })))
+    setLoading(false)
   }
 
-  const handleAdd = async (e: React.FormEvent) => {
+  const handleAdd = (e: React.FormEvent) => {
     e.preventDefault()
-    try {
-      const response = await fetch('/api/education', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-        },
-        body: JSON.stringify(formData)
-      })
-
-      if (response.ok) {
-        fetchEducations()
-        onUpdate()
-        setFormData({
-          degree: '',
-          institution: '',
-          location: '',
-          start_date: '',
-          end_date: '',
-          description: ''
-        })
-        setShowAddForm(false)
-      }
-    } catch (error) {
-      console.error('Failed to add education')
-    }
+    educationStorage.add({
+      ...formData,
+      gpa: null
+    })
+    setFormData({
+      degree: '',
+      institution: '',
+      location: '',
+      start_date: '',
+      end_date: '',
+      description: ''
+    })
+    setShowAddForm(false)
+    fetchEducations()
+    onUpdate()
   }
 
-  const handleUpdate = async (id: number) => {
+  const handleUpdate = (id: number) => {
     const edu = educations.find(e => e.id === id)
     if (!edu) return
-
-    try {
-      const response = await fetch(`/api/education/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-        },
-        body: JSON.stringify(edu)
-      })
-
-      if (response.ok) {
-        fetchEducations()
-        onUpdate()
-        setEditingId(null)
-      }
-    } catch (error) {
-      console.error('Failed to update education')
-    }
+    educationStorage.update(id, {
+      ...edu,
+      gpa: null
+    })
+    fetchEducations()
+    onUpdate()
+    setEditingId(null)
   }
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = (id: number) => {
     if (!confirm('Are you sure you want to delete this education?')) return
-
-    try {
-      const response = await fetch(`/api/education/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
-      })
-
-      if (response.ok) {
-        fetchEducations()
-        onUpdate()
-      }
-    } catch (error) {
-      console.error('Failed to delete education')
-    }
+    educationStorage.delete(id)
+    fetchEducations()
+    onUpdate()
   }
 
   if (loading) {

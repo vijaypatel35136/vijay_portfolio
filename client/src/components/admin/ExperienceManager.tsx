@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Plus, Edit2, Trash2, Save, X, Briefcase } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { experienceStorage } from '../../lib/storage'
 
 interface Experience {
   id: number
@@ -36,102 +37,64 @@ export default function ExperienceManager({ onUpdate }: ExperienceManagerProps) 
     fetchExperiences()
   }, [])
 
-  const fetchExperiences = async () => {
-    try {
-      const response = await fetch('/api/experience')
-      if (response.ok) {
-        const data = await response.json()
-        setExperiences(data)
-      }
-    } catch (error) {
-      console.error('Failed to fetch experiences')
-    } finally {
-      setLoading(false)
-    }
+  const fetchExperiences = () => {
+    const data = experienceStorage.get()
+    setExperiences(
+      data.map((exp) => ({
+        ...exp,
+        // description is always string[] from storage
+        description: Array.isArray(exp.description)
+          ? exp.description.join('\n')
+          : String(exp.description),
+      }))
+    )
+    setLoading(false)
   }
 
-  const handleAdd = async (e: React.FormEvent) => {
+  const handleAdd = (e: React.FormEvent) => {
     e.preventDefault()
-    try {
-      const response = await fetch('/api/experience', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-        },
-        body: JSON.stringify({
-          ...formData,
-          end_date: formData.is_current ? null : formData.end_date
-        })
-      })
-
-      if (response.ok) {
-        fetchExperiences()
-        onUpdate()
-        setFormData({
-          title: '',
-          company: '',
-          location: '',
-          start_date: '',
-          end_date: '',
-          description: '',
-          is_current: false
-        })
-        setShowAddForm(false)
-      }
-    } catch (error) {
-      console.error('Failed to add experience')
-    }
+    experienceStorage.add({
+      ...formData,
+      end_date: formData.is_current ? null : formData.end_date,
+      description: formData.description.split('\n').filter((d: string) => d.trim())
+    })
+    setFormData({
+      title: '',
+      company: '',
+      location: '',
+      start_date: '',
+      end_date: '',
+      description: '',
+      is_current: false
+    })
+    setShowAddForm(false)
+    fetchExperiences()
+    onUpdate()
   }
 
-  const handleUpdate = async (id: number) => {
+  const handleUpdate = (id: number) => {
     const exp = experiences.find(e => e.id === id)
     if (!exp) return
-
-    try {
-      const response = await fetch(`/api/experience/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-        },
-        body: JSON.stringify(exp)
-      })
-
-      if (response.ok) {
-        fetchExperiences()
-        onUpdate()
-        setEditingId(null)
-      }
-    } catch (error) {
-      console.error('Failed to update experience')
-    }
+    experienceStorage.update(id, {
+      ...exp,
+      description: typeof exp.description === 'string' 
+        ? exp.description.split('\n').filter((d: string) => d.trim()) 
+        : exp.description
+    })
+    fetchExperiences()
+    onUpdate()
+    setEditingId(null)
   }
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = (id: number) => {
     if (!confirm('Are you sure you want to delete this experience?')) return
-
-    try {
-      const response = await fetch(`/api/experience/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
-      })
-
-      if (response.ok) {
-        fetchExperiences()
-        onUpdate()
-      }
-    } catch (error) {
-      console.error('Failed to delete experience')
-    }
+    experienceStorage.delete(id)
+    fetchExperiences()
+    onUpdate()
   }
 
   const parseDescription = (desc: string): string[] => {
-    try {
-      return JSON.parse(desc)
-    } catch {
-      return [desc]
-    }
+    return desc.split('\n').filter((s) => s.trim())
   }
 
   if (loading) {
@@ -311,8 +274,7 @@ export default function ExperienceManager({ onUpdate }: ExperienceManagerProps) 
                       <p className="text-teal-600 font-semibold">{exp.company}</p>
                       <p className="text-sm text-gray-600">{exp.location}</p>
                       <p className="text-sm text-gray-500 mt-1">
-                        {new Date(exp.start_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })} - {' '}
-                        {exp.is_current ? 'Present' : new Date(exp.end_date!).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                        {exp.start_date} → {exp.is_current ? 'Present' : exp.end_date || ''}
                         {exp.is_current && <span className="ml-2 px-2 py-1 bg-green-100 text-green-700 text-xs rounded">Current</span>}
                       </p>
                     </div>

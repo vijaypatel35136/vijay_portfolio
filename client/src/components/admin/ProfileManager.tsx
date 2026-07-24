@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 import { Save, Loader } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { profileStorage } from '../../lib/storage'
 
-interface Profile {
-  id: number
+interface ProfileForm {
   name: string
   tagline_roles: string[]
   summary: string
@@ -21,7 +21,7 @@ interface ProfileManagerProps {
 }
 
 export default function ProfileManager({ onUpdate }: ProfileManagerProps) {
-  const [profile, setProfile] = useState<Profile | null>(null)
+  const [profile, setProfile] = useState<ProfileForm | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
@@ -30,25 +30,24 @@ export default function ProfileManager({ onUpdate }: ProfileManagerProps) {
     fetchProfile()
   }, [])
 
-  const fetchProfile = async () => {
-    try {
-      const response = await fetch('/api/profile')
-      if (response.ok) {
-        const data = await response.json()
-        // Parse tagline_roles if it's a JSON string
-        if (typeof data.tagline_roles === 'string') {
-          data.tagline_roles = JSON.parse(data.tagline_roles)
-        }
-        setProfile(data)
-      }
-    } catch (error) {
-      console.error('Failed to fetch profile')
-    } finally {
-      setLoading(false)
-    }
+  const fetchProfile = () => {
+    const data = profileStorage.get()
+    setProfile({
+      name: data.name,
+      tagline_roles: data.tagline_roles || [],
+      summary: data.summary || '',
+      email: data.email,
+      phone: data.phone,
+      linkedin: data.linkedin,
+      github: data.github,
+      location: data.location,
+      experience_years: data.experience_years || 0,
+      projects_count: data.projects_count || 0,
+    })
+    setLoading(false)
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!profile) return
 
@@ -56,22 +55,21 @@ export default function ProfileManager({ onUpdate }: ProfileManagerProps) {
     setMessage('')
 
     try {
-      const response = await fetch('/api/profile', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-        },
-        body: JSON.stringify(profile)
+      profileStorage.update({
+        name: profile.name,
+        tagline_roles: profile.tagline_roles,
+        summary: profile.summary,
+        email: profile.email,
+        phone: profile.phone,
+        linkedin: profile.linkedin,
+        github: profile.github,
+        location: profile.location,
+        experience_years: profile.experience_years,
+        projects_count: profile.projects_count,
       })
-
-      if (response.ok) {
-        setMessage('Profile updated successfully!')
-        onUpdate()
-        setTimeout(() => setMessage(''), 3000)
-      } else {
-        setMessage('Failed to update profile')
-      }
+      setMessage('Profile updated successfully!')
+      onUpdate()
+      setTimeout(() => setMessage(''), 3000)
     } catch (error) {
       setMessage('Error updating profile')
     } finally {
@@ -187,7 +185,7 @@ export default function ProfileManager({ onUpdate }: ProfileManagerProps) {
 
         {/* Summary */}
         <div>
-          <label className="block text-sm font-semibold text-navy-800 mb-2">Summary</label>
+          <label className="block text-sm font-semibold text-navy-800 mb-2">Summary / Bio</label>
           <textarea
             value={profile.summary}
             onChange={(e) => setProfile({ ...profile, summary: e.target.value })}
@@ -232,7 +230,7 @@ export default function ProfileManager({ onUpdate }: ProfileManagerProps) {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-navy-800 mb-2">GitHub/Portfolio URL</label>
+            <label className="block text-sm font-semibold text-navy-800 mb-2">GitHub / Portfolio URL</label>
             <input
               type="url"
               value={profile.github}
@@ -248,8 +246,9 @@ export default function ProfileManager({ onUpdate }: ProfileManagerProps) {
             <label className="block text-sm font-semibold text-navy-800 mb-2">Years of Experience</label>
             <input
               type="number"
+              min={0}
               value={profile.experience_years}
-              onChange={(e) => setProfile({ ...profile, experience_years: parseInt(e.target.value) })}
+              onChange={(e) => setProfile({ ...profile, experience_years: parseInt(e.target.value) || 0 })}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-black"
             />
           </div>
@@ -258,8 +257,9 @@ export default function ProfileManager({ onUpdate }: ProfileManagerProps) {
             <label className="block text-sm font-semibold text-navy-800 mb-2">Projects Completed</label>
             <input
               type="number"
+              min={0}
               value={profile.projects_count}
-              onChange={(e) => setProfile({ ...profile, projects_count: parseInt(e.target.value) })}
+              onChange={(e) => setProfile({ ...profile, projects_count: parseInt(e.target.value) || 0 })}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-black"
             />
           </div>

@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react'
 import { Plus, Edit2, Trash2, Save, X } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { skillsStorage } from '../../lib/storage'
 
 interface Skill {
   id: number
   category: string
   skill: string
-  display_order: number
 }
 
 interface SkillsManagerProps {
@@ -24,80 +24,32 @@ export default function SkillsManager({ onUpdate }: SkillsManagerProps) {
     fetchSkills()
   }, [])
 
-  const fetchSkills = async () => {
-    try {
-      const response = await fetch('/api/skills')
-      if (response.ok) {
-        const data = await response.json()
-        setSkills(data)
-      }
-    } catch (error) {
-      console.error('Failed to fetch skills')
-    } finally {
-      setLoading(false)
-    }
+  const fetchSkills = () => {
+    setSkills(skillsStorage.get())
+    setLoading(false)
   }
 
-  const handleAdd = async (e: React.FormEvent) => {
+  const handleAdd = (e: React.FormEvent) => {
     e.preventDefault()
-    try {
-      const response = await fetch('/api/skills', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-        },
-        body: JSON.stringify(formData)
-      })
-
-      if (response.ok) {
-        fetchSkills()
-        onUpdate()
-        setFormData({ category: '', skill: '' })
-        setShowAddForm(false)
-      }
-    } catch (error) {
-      console.error('Failed to add skill')
-    }
+    skillsStorage.add(formData)
+    setFormData({ category: '', skill: '' })
+    setShowAddForm(false)
+    fetchSkills()
+    onUpdate()
   }
 
-  const handleUpdate = async (id: number, data: { category: string; skill: string }) => {
-    try {
-      const response = await fetch(`/api/skills/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-        },
-        body: JSON.stringify(data)
-      })
-
-      if (response.ok) {
-        fetchSkills()
-        onUpdate()
-        setEditingId(null)
-      }
-    } catch (error) {
-      console.error('Failed to update skill')
-    }
+  const handleUpdate = (id: number, data: { category: string; skill: string }) => {
+    skillsStorage.update(id, data)
+    fetchSkills()
+    onUpdate()
+    setEditingId(null)
   }
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = (id: number) => {
     if (!confirm('Are you sure you want to delete this skill?')) return
-
-    try {
-      const response = await fetch(`/api/skills/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
-      })
-
-      if (response.ok) {
-        fetchSkills()
-        onUpdate()
-      }
-    } catch (error) {
-      console.error('Failed to delete skill')
-    }
+    skillsStorage.delete(id)
+    fetchSkills()
+    onUpdate()
   }
 
   // Group skills by category

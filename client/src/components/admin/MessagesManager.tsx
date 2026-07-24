@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Trash2, Mail, MailOpen, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { messagesStorage } from '../../lib/storage'
 
 interface Message {
   id: number
@@ -25,54 +26,28 @@ export default function MessagesManager({ onUpdate }: MessagesManagerProps) {
     fetchMessages()
   }, [])
 
-  const fetchMessages = async () => {
-    try {
-      const response = await fetch('/api/contact', {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
-      })
-      if (response.ok) {
-        const data = await response.json()
-        setMessages(data)
-      }
-    } catch (error) {
-      console.error('Failed to fetch messages')
-    } finally {
-      setLoading(false)
-    }
+  const fetchMessages = () => {
+    const data = messagesStorage.get()
+    setMessages(data.map((msg: any) => ({
+      ...msg,
+      subject: 'Contact Form Submission'
+    })))
+    setLoading(false)
   }
 
-  const handleMarkAsRead = async (id: number) => {
-    try {
-      const response = await fetch(`/api/contact/${id}/read`, {
-        method: 'PUT',
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
-      })
-      if (response.ok) {
-        fetchMessages()
-        onUpdate()
-      }
-    } catch (error) {
-      console.error('Failed to mark as read')
-    }
+  const handleMarkAsRead = (id: number) => {
+    messagesStorage.markAsRead(id)
+    fetchMessages()
+    onUpdate()
   }
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = (id: number) => {
     if (!confirm('Are you sure you want to delete this message?')) return
-    
-    try {
-      const response = await fetch(`/api/contact/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
-      })
-      if (response.ok) {
-        fetchMessages()
-        onUpdate()
-        if (selectedMessage?.id === id) {
-          setSelectedMessage(null)
-        }
-      }
-    } catch (error) {
-      console.error('Failed to delete message')
+    messagesStorage.delete(id)
+    fetchMessages()
+    onUpdate()
+    if (selectedMessage?.id === id) {
+      setSelectedMessage(null)
     }
   }
 

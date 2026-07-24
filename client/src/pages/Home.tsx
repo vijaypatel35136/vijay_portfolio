@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { ArrowRight, Download, Mail, Phone, Linkedin, Github, ExternalLink, ChevronUp, Terminal } from 'lucide-react'
 import ContactForm from '../components/ContactForm'
-import { api } from '../utils/api'
+import { profileStorage, skillsStorage, experienceStorage, projectsStorage, educationStorage } from '../lib/storage'
 // Typewriter hook
 function useTypewriter(texts: string[], speed = 80, deleteSpeed = 40, pauseTime = 2000) {
   const [displayText, setDisplayText] = useState('')
@@ -44,7 +44,7 @@ interface Profile {
   location: string
   experience_years: number
   projects_count: number
-  education: string
+  education?: string
 }
 
 interface Skill {
@@ -123,26 +123,13 @@ export default function Home() {
     .filter((p) => activeFilter === 'All' || p.category === activeFilter)
 
   useEffect(() => {
-    async function fetchData() {
-      try {
-        const [profileRes, skillsRes, expRes, projectsRes, eduRes] = await Promise.all([
-          api.get('/api/profile'),
-          api.get('/api/skills'),
-          api.get('/api/experience'),
-          api.get('/api/projects'),
-          api.get('/api/education'),
-        ])
-
-        if (profileRes.ok) setProfile(await profileRes.json())
-        if (skillsRes.ok) setSkills(await skillsRes.json())
-        if (expRes.ok) setExperiences(await expRes.json())
-        if (projectsRes.ok) setProjects(await projectsRes.json())
-        if (eduRes.ok) setEducation(await eduRes.json())
-      } catch (error) {
-        console.error('Failed to fetch data:', error)
-      } finally {
-        setLoading(false)
-      }
+    function fetchData() {
+      setProfile(profileStorage.get())
+      setSkills(skillsStorage.get())
+      setExperiences(experienceStorage.get())
+      setProjects(projectsStorage.get())
+      setEducation(educationStorage.get())
+      setLoading(false)
     }
     fetchData()
   }, [])

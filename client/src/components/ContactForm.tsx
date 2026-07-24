@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Send, CheckCircle, XCircle } from 'lucide-react'
-import { api } from '../utils/api'
+import { messagesStorage } from '../lib/storage'
 
 export default function ContactForm() {
   const [formData, setFormData] = useState({
@@ -20,28 +20,21 @@ export default function ContactForm() {
     })
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setStatus('idle')
     setErrorMessage('')
 
     try {
-      const response = await api.post('/api/contact', formData)
-      const data = await response.json()
-
-      if (response.ok) {
-        setStatus('success')
-        setFormData({ name: '', email: '', message: '' })
-        
-        // Auto-hide success message after 5 seconds
-        setTimeout(() => {
-          setStatus('idle')
-        }, 5000)
-      } else {
-        setStatus('error')
-        setErrorMessage(data.error || 'Failed to send message')
-      }
+      messagesStorage.add(formData)
+      setStatus('success')
+      setFormData({ name: '', email: '', message: '' })
+      
+      // Auto-hide success message after 5 seconds
+      setTimeout(() => {
+        setStatus('idle')
+      }, 5000)
     } catch (error) {
       setStatus('error')
       setErrorMessage('Network error. Please try again.')

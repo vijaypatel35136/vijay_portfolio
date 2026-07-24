@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Lock, ArrowRight, Shield, User } from 'lucide-react'
 import { motion } from 'framer-motion'
-import { api } from '../utils/api'
+import { authStorage } from '../lib/storage'
 
 export default function AdminLogin() {
   const navigate = useNavigate()
@@ -11,24 +11,15 @@ export default function AdminLogin() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setLoading(true)
 
-    try {
-      const response = await api.post('/api/auth/login', { email, password })
-      const data = await response.json()
-
-      if (response.ok) {
-        localStorage.setItem('adminToken', data.token)
-        navigate('/admin/dashboard')
-      } else {
-        setError(data.error || 'Login failed')
-      }
-    } catch (err) {
-      setError('Network error. Please try again.')
-    } finally {
+    if (authStorage.login(email, password)) {
+      navigate('/admin/dashboard')
+    } else {
+      setError('Invalid credentials. Use admin@vijay.dev / admin123')
       setLoading(false)
     }
   }

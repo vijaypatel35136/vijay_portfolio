@@ -12,7 +12,7 @@ import {
   LogOut, 
   Eye
 } from 'lucide-react'
-import { api } from '../utils/api'
+import { authStorage, projectsStorage, messagesStorage } from '../lib/storage'
 import ProfileManager from '../components/admin/ProfileManager'
 import SkillsManager from '../components/admin/SkillsManager'
 import ExperienceManager from '../components/admin/ExperienceManager'
@@ -36,45 +36,27 @@ export default function AdminDashboard() {
     totalExperience: 0
   })
   const [activeTab, setActiveTab] = useState('dashboard')
-  const [backendStatus, setBackendStatus] = useState<'connected' | 'disconnected' | 'loading'>('loading')
-
   useEffect(() => {
-    const token = localStorage.getItem('adminToken')
-    if (!token) {
+    if (!authStorage.isAuthenticated()) {
       navigate('/admin')
       return
     }
     fetchDashboardData()
-    checkBackendHealth()
   }, [navigate])
 
-  const checkBackendHealth = async () => {
-    try {
-      const response = await api.get('/api/health')
-      if (response.ok) {
-        setBackendStatus('connected')
-      } else {
-        setBackendStatus('disconnected')
-      }
-    } catch (err) {
-      setBackendStatus('disconnected')
-    }
-  }
-
-  const fetchDashboardData = async () => {
-    try {
-      const response = await api.get('/api/admin/stats')
-      if (response.ok) {
-        const data = await response.json()
-        setStats(data)
-      }
-    } catch (err) {
-      console.error('Failed to fetch stats')
-    }
+  const fetchDashboardData = () => {
+    const projects = projectsStorage.get()
+    const messages = messagesStorage.get()
+    setStats({
+      totalProjects: projects.length,
+      totalMessages: messages.length,
+      unreadMessages: messages.filter(m => !m.is_read).length,
+      totalExperience: 0
+    })
   }
 
   const handleLogout = () => {
-    localStorage.removeItem('adminToken')
+    authStorage.logout()
     navigate('/admin')
   }
 
@@ -152,27 +134,6 @@ export default function AdminDashboard() {
               <p className="text-gray-500 mt-1">Manage your portfolio content</p>
             </div>
             <div className="flex items-center gap-3">
-              {/* Backend Status */}
-              <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
-                backendStatus === 'connected' 
-                  ? 'bg-green-50 text-green-700' 
-                  : backendStatus === 'loading'
-                  ? 'bg-gray-50 text-gray-600'
-                  : 'bg-red-50 text-red-700'
-              }`}>
-                <div className={`w-2 h-2 rounded-full ${
-                  backendStatus === 'connected' 
-                    ? 'bg-green-500 animate-pulse' 
-                    : backendStatus === 'loading'
-                    ? 'bg-gray-400 animate-pulse'
-                    : 'bg-red-500'
-                }`} />
-                <span className="text-sm font-medium">
-                  {backendStatus === 'connected' ? 'Backend Connected' : 
-                   backendStatus === 'loading' ? 'Checking...' : 
-                   'Backend Disconnected'}
-                </span>
-              </div>
               <Link
                 to="/"
                 target="_blank"
